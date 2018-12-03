@@ -3,5 +3,5 @@
 from game import Game
 
 
-game = Game(800, 600)
-game.start(30)
+game = Game(1200,  900)
+game.start(20)
