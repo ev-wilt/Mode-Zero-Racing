@@ -18,11 +18,21 @@ class Car(pygame.sprite.Sprite):
         self.width = width
         self.height = height
         self.rightBound = self.width
+        self.grassLength = 150
+        self.inGrass = False
         self.turnProgress = 0
         self.turning = False
+        self.isLeft = False
+        self.isRight = False
+        self.hasWon = False
         self.currentSprite = 0
         self.load_images()
+        self.roadRatio = roadRatio
         self.background = Background(self.width, self.height, roadRatio)
+        
+        self.engineChannel = pygame.mixer.Channel(0)
+        self.engine = pygame.mixer.Sound('assets/engine.wav')
+        self.engine.set_volume(1)
 
     def load_images(self):
         if(self.player == 1):
@@ -60,6 +70,10 @@ class Car(pygame.sprite.Sprite):
     def getCurrentImage(self):
         return self.image
 
+    def quiet(self):
+        print("STOPPING")
+        self.engineChannel.stop()
+
     
     def straighten(self):
         center = len(self.car_images)//2
@@ -75,19 +89,48 @@ class Car(pygame.sprite.Sprite):
             self.rect.center = (self.x, self.y)
 
     def check_bounds(self):
+        #screen bounds
         if self.rect.centerx > self.rightBound:
             self.rect.centerx = self.rightBound
-        if self.rect.centerx < 0:
+            self.speedX = 0
+        elif self.rect.centerx < 0:
             self.rect.centerx = 0
+            self.speedX = 0
+
+        #grass bounds
+        if self.rect.centerx > self.rightBound- self.grassLength:
+            self.inGrass = True
+        elif self.rect.centerx < self.grassLength:
+            self.inGrass = True
+        else:
+            self.inGrass = False
+
+        
 
     def apply_drag(self):
-        self.speed *= .95
-        if(self.speedX > 0.1):
-            self.speedX -= 0.1
-        elif(self.speedX <-0.1 ):
-            self.speedX += 0.1
+        if(self.inGrass):
+            self.speed *= .8
+            if(self.speedX > 0.6):
+                self.speedX -= 0.6
+            elif(self.speedX <-0.6 ):
+                self.speedX += 0.6
+            else:
+                self.speedX = 0
         else:
-            self.speedX = 0
+            self.speed *= .97
+            if(self.speed > 0.001):
+                self.speed -= 0.001
+            elif(self.speed < -0.001):
+                self.speed += 0.001
+            else:
+                self.speedX = 0
+            if(self.speedX > 0.1):
+                self.speedX -= 0.1
+            elif(self.speedX < -0.1 ):
+                self.speedX += 0.1
+            else:
+                self.speedX = 0
+
         self.speedX *= .98
     
     def physics(self):
@@ -102,17 +145,20 @@ class Car(pygame.sprite.Sprite):
         #    self.x = 0
 
     def accelerate(self):
-        self.speed += .01
+        if(not self.engineChannel.get_busy()):
+            self.engineChannel.play(self.engine, -1)
+        self.speed += .006
         if self.speed > self.maxSpeed:
             self.speed = self.maxSpeed
     
     def decelerate(self):
-        self.speed -= .01
+        self.speed -= .006
         if self.speed < self.minSpeed:
             self.speed = self.minSpeed
 
     def left(self):
-        if(self.speed > 0):
+        if(self.speed > 0.002):
+            self.speed -= 0.002
             self.currentSprite -= 1
             if(self.currentSprite < 0):
                 self.currentSprite = 0
@@ -125,8 +171,8 @@ class Car(pygame.sprite.Sprite):
                 self.speedX = self.maxSpeedX
     
     def right(self):
-        if(self.speed > 0):
-            
+        if(self.speed > 0.002):
+            self.speed -= 0.002
             self.currentSprite += 1
             if((self.currentSprite == len(self.car_images))):
                 self.currentSprite = len(self.car_images) - 1
@@ -171,6 +217,12 @@ class Car(pygame.sprite.Sprite):
         if(self.getTurnProgress() < target + 0.1):
             self.turnProgress += 0.1
         self.calculateTurnProgress()
+
+    def setTurnLeft(self, left):
+        self.isLeft = left
+    
+    def setTurnRight(self, right):
+        self.isRight = right
 
     def decrementTurnProgress(self, target):
         if(self.getTurnProgress() > target - 0.1):
