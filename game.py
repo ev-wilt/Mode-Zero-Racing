@@ -3,6 +3,7 @@
 import time, math
 import pygame, sys
 from car import Car
+from dirt import Dirt
 from enemy import Enemy
 
 class Game:
@@ -16,6 +17,14 @@ class Game:
         pygame.mixer.music.load("assets/true.mp3")
         pygame.mixer.music.set_volume(0.1)
         pygame.mixer.music.play(-1)
+        
+        self.started = False
+        self.one = pygame.image.load("assets/one.png")
+        self.two = pygame.image.load("assets/two.png")
+        self.three = pygame.image.load("assets/three.png")
+        self.GO = pygame.image.load("assets/GO.png")
+        self.numbers = [self.one, self.two, self.three]
+
         self.myfont = pygame.font.SysFont('Courier New', 30)
         self.bigfont = pygame.font.SysFont('Courier New', 50)
         self.width = canvas_width
@@ -25,11 +34,11 @@ class Game:
         self.p2surface = pygame.Surface((self.width, int(self.height/2)))
 
         #setting up some road stuff
-        self.leftTurns = [55, 150]
-        self.rightTurns = [20, 90]
-        self.finishLine = 30
+        self.leftTurns = [55, 90]
+        self.rightTurns = [20, 120]
+        self.finishLine = 150
         self.finishLineHeight = 0.5
-        self.turnLength = 30
+        self.turnLength = 20
         self.turnIntensity = 1
         self.roadRatio = 0.4
         self.drawdistance = 10
@@ -37,20 +46,35 @@ class Game:
         #player stuff
         self.p1 = Car(1, self.width*0.3, (self.height/2)*0.85, self.width, (self.height/2), self.roadRatio)
         self.p2 = Car(2, self.width*0.7, (self.height/2)*0.85, self.width, (self.height/2), self.roadRatio)
+
+        self.p1Dirt = Dirt(self.p1, self.width*0.3, (self.height/2)*0.85, self.width, (self.height/2))
+        self.p2Dirt = Dirt(self.p2, self.width*0.3, (self.height/2)*0.85, self.width, (self.height/2))
         
         self.p1Enemy = Enemy(self.width*0.7, (self.height/2)*0.85, self.width, self.height/2, self.roadRatio, self.p2)
         self.p2Enemy = Enemy(self.width*0.3, (self.height/2)*0.85, self.width, self.height/2, self.roadRatio, self.p1)
 
         #sprite groups
-        self.p1Sprites = pygame.sprite.Group(self.p1)
+        self.p1Sprites = pygame.sprite.Group(self.p1, self.p1Dirt)
         self.p1EnemySprites = pygame.sprite.Group(self.p1Enemy)
-        self.p2Sprites = pygame.sprite.Group(self.p2)
+        self.p2Sprites = pygame.sprite.Group(self.p2, self.p2Dirt)
         self.p2EnemySprites = pygame.sprite.Group(self.p2Enemy)
     def start(self, fps):
         #start the game loop given frames per second
         self.millisBetweenTicks = (1/fps) * 1000
         self.lastTick = int(time.time() * 1000)
         self.gameloop()
+
+    def countdown(self):
+        for i in range(2,-1,-1):
+            for n in range(0,5):
+                self.screen.blit(pygame.transform.scale(self.numbers[i], (23*n,28*n)), (self.width//2 - self.numbers[i].get_width()/2, self.height//2 - self.numbers[i].get_height()/2))
+                pygame.display.flip()
+                pygame.time.wait(100)
+                self.screen.fill((0,0,0))
+            self.screen.fill((0,0,0))
+        self.screen.blit(pygame.transform.scale(self.GO, (300,300)), (self.width//2 - self.GO.get_width()/2, self.height//2 - self.GO.get_height()/2))
+        pygame.display.flip()
+        pygame.time.wait(1000)
     def create_surface(self, width, height):
         return pygame.Surface((width, height))
     def gameloop(self):
@@ -63,6 +87,9 @@ class Game:
                 self.tick()
     def tick(self):
         #this gets called every tick
+        if self.started == False:
+            self.countdown()
+            self.started = True
         self.check_input()
 
         self.drawBackground(self.p1, self.p1surface)

@@ -1,3 +1,4 @@
+#car.py
 import pygame, sys
 from background import Background
 
@@ -35,6 +36,7 @@ class Car(pygame.sprite.Sprite):
         self.engine.set_volume(1)
 
     def load_images(self):
+
         if(self.player == 1):
             self.image = pygame.image.load("assets/car.png")
             self.car_left_3 = pygame.image.load("assets/car_left_3.png")
@@ -185,7 +187,7 @@ class Car(pygame.sprite.Sprite):
                 self.speedX = self.minSpeedX
 
     def drift(self, intensity):
-        self.speedX += (3.8*self.speed*self.turnProgress*intensity)
+        self.speedX += (8*self.speed*self.turnProgress*intensity)
 
     def update(self):
         self.physics()

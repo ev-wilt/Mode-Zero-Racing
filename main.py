@@ -1,5 +1,4 @@
 #main.py
-#example game code here
 from game import Game
 
 
