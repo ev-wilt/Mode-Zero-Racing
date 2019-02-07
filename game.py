@@ -29,7 +29,7 @@ class Game:
         self.bigfont = pygame.font.SysFont('Courier New', 50)
         self.width = canvas_width
         self.height = canvas_height
-        self.screen = pygame.display.set_mode((self.width, self.height))
+        self.screen = pygame.display.set_mode((self.width, self.height), pygame.FULLSCREEN)
         self.p1surface = pygame.Surface((self.width,  int(self.height/2)))
         self.p2surface = pygame.Surface((self.width, int(self.height/2)))
 
@@ -246,18 +246,21 @@ class Game:
 
             
         if(not self.p2.getPosition() > self.finishLine - self.finishLineHeight):
-            if keys[pygame.K_UP]:
+            if keys[pygame.K_i]:
                 self.p2.accelerate()
                 enginesQuiet = False
-            elif keys[pygame.K_DOWN]:
+            elif keys[pygame.K_k]:
                 self.p2.decelerate()
-            if keys[pygame.K_RIGHT]:
+            if keys[pygame.K_l]:
                 self.p2.right()
-            elif keys[pygame.K_LEFT]:
+            elif keys[pygame.K_j]:
                 self.p2.left()
             else:
                 self.p2.straighten()
 
+        if keys[pygame.K_SLASH]:
+            pygame.quit()
+            sys.exit()
         if(enginesQuiet):
             self.p1.quiet()
             self.p2.quiet()
